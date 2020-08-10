@@ -1,18 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#121212"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="50dp"
+        android:orientation="vertical">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:srcCompat="@drawable/anon_icon" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/shrimp"
+            android:textSize="30sp"
+            android:textColor="#ffffff"
+            android:text="ANONCHAT"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="50dp"
+            android:fontFamily="@font/shrimp"
+            android:layout_gravity="center"
+            android:textColor="#ffffff"
+            android:text="Nombre:"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="50dp"
+            android:backgroundTint="#ffffff"
+            android:fontFamily="@font/shrimp"
+            android:layout_marginLeft="50dp"/>
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="25dp"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp">
+
+            <RadioButton
+                android:id="@+id/radioButton"
+                android:layout_width="match_parent"
+                android:fontFamily="@font/shrimp"
+                android:layout_height="wrap_content"
+                android:text="Masculino" />
+
+            <RadioButton
+                android:id="@+id/radioButton2"
+                android:layout_width="match_parent"
+                android:fontFamily="@font/shrimp"
+                android:layout_height="wrap_content"
+                android:text="Femenino" />
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/btn_chatear"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#69A879"
+            android:layout_marginTop="15dp"
+            android:layout_marginRight="100dp"
+            android:fontFamily="@font/shrimp"
+            android:layout_marginLeft="100dp"
+            android:text="CHATEA!"/>
+
+    </LinearLayout>
+
+</RelativeLayout>
