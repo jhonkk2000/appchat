@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "6154466330",
+    "firebase_url": "https://anonchat-c35cb.firebaseio.com",
+    "project_id": "anonchat-c35cb",
+    "storage_bucket": "anonchat-c35cb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:6154466330:android:e7f6f0d45337ee8c824da3",
+        "android_client_info": {
+          "package_name": "com.jhonkkman.app2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "6154466330-k235pjbdkikga1kl497sq70ksrpmgbmg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2WkoqqhaUk_RTdE5H6lVIhs2CzAvdvHw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "6154466330-k235pjbdkikga1kl497sq70ksrpmgbmg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
