@@ -9,6 +9,9 @@ public class SessionMensajes {
         this.user = user;
     }
 
+    public SessionMensajes(){
+    }
+
     public String getMensaje() {
         return mensaje;
     }

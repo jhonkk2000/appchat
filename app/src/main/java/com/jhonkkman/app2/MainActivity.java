@@ -1,13 +1,16 @@
 package com.jhonkkman.app2;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -18,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.util.Strings;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -73,6 +77,14 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public void alerta(String mensaje){
+        AlertDialog.Builder alerta = new AlertDialog.Builder(MainActivity.this);
+        alerta.setTitle("MENSAJE");
+        alerta.setMessage(mensaje);
+        alerta.setPositiveButton("OK",null);
+        alerta.show();
+    }
+
     public void chatear(){
         btn_chatear.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -82,104 +94,215 @@ public class MainActivity extends AppCompatActivity {
                 pd.show();
                 if (!et_nombre.getText().toString().isEmpty() && (r_m.isChecked() || r_f.isChecked())){
                     name= et_nombre.getText().toString();
+                    final boolean[] validarName = {false};
                     dbR.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if(snapshot.exists()){
-                                boolean validarName = false;
-                                for (DataSnapshot ds : snapshot.getChildren()){
-                                    if(ds.child("nombre").getValue().toString().equals(name)){
-                                        validarName=true;
-                                    }
+                            for (DataSnapshot ds : snapshot.getChildren()){
+                                if(ds.child("nombre").getValue().toString().equals(name)){
+                                    validarName[0] =true;
                                 }
-                                if(!validarName){
-                                    if(r_m.isChecked()){
-                                        dbR.child("users").push().setValue(new User(name,r_m.getText().toString(),true));
-                                    }else{
-                                        dbR.child("users").push().setValue(new User(name,r_f.getText().toString(),true));
-                                    }
-                                    //Buscar usuario
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            dbR.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
-                                                @Override
-                                                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                    if(snapshot.exists()){
-                                                        final User user;
-                                                        ArrayList<String> keys = new ArrayList<>();
-                                                        ArrayList<User> usuariosL = new ArrayList<>();
-                                                        String key1 = "";
-                                                        for (DataSnapshot dataSnapshot:snapshot.getChildren()) {
-                                                            if (dataSnapshot.child("nombre").getValue().toString().equals(name)){
-                                                                key1 = dataSnapshot.getKey();
-                                                            }
-                                                            if(dataSnapshot.child("estado").getValue().toString().equals("true") && !dataSnapshot.child("nombre").getValue().toString().equals(name)){
-                                                                keys.add(dataSnapshot.getKey());
-                                                                usuariosL.add(dataSnapshot.getValue(User.class));
-                                                            }
+                            }
+                            if(!validarName[0]){
+                                if(r_m.isChecked()){
+                                    dbR.child("users").push().setValue(new User(name,r_m.getText().toString(),true));
+                                }else{
+                                    dbR.child("users").push().setValue(new User(name,r_f.getText().toString(),true));
+                                }
+                                final int[] l = {0};
+                                final String[] key1 = {""};
+                                //Buscar usuario
+                                dbR.child("users").addChildEventListener(new ChildEventListener() {
+                                    @Override
+                                    public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                                        dbR.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                pd.setTitle("Buscando");
+                                                l[0]++;
+                                                if(snapshot.exists()){
+                                                    final User user;
+                                                    ArrayList<String> keys = new ArrayList<>();
+                                                    ArrayList<User> usuariosL = new ArrayList<>();
+                                                    String key1 = "";
+                                                    for (DataSnapshot dataSnapshot:snapshot.getChildren()) {
+                                                        if (dataSnapshot.child("nombre").getValue().toString().equals(name)){
+                                                            key1 = dataSnapshot.getKey();
                                                         }
+                                                        if(dataSnapshot.child("estado").getValue().toString().equals("true") && !dataSnapshot.child("nombre").getValue().toString().equals(name)){
+                                                            keys.add(dataSnapshot.getKey());
+                                                            usuariosL.add(dataSnapshot.getValue(User.class));
+                                                        }
+                                                    }
+                                                    if(snapshot.child(key1).child("estado").getValue().toString().equals("true")){
                                                         Random ran = new Random();
-                                                        Toast.makeText(MainActivity.this, String.valueOf(usuariosL.size()), Toast.LENGTH_SHORT).show();
-                                                        int num = ran.nextInt(usuariosL.size()-1);
-                                                        user = usuariosL.get(num);
-                                                        String finalKey =keys.get(num);
-                                                        dbR.child("users").child(finalKey).child("estado").setValue(false);
-                                                        dbR.child("users").child(key1).child("estado").setValue(false);
-                                                        dbR.child("sessions").push().child("users").setValue(new SessionUsers(name,user.getNombre()));
+                                                        //Toast.makeText(MainActivity.this, String.valueOf(usuariosL.size()), Toast.LENGTH_SHORT).show();
+                                                        if (usuariosL.size()>0){
+                                                            int num;
+                                                            if (usuariosL.size()==1){
+                                                                num = 0;
+                                                            }else{
+                                                                num = ran.nextInt(usuariosL.size()-1);
+                                                            }
+                                                            user = usuariosL.get(num);
+                                                            final String finalKey =keys.get(num);
+                                                            final String finalKey1 = key1;
+                                                            //modificar estado del usuario visitante
+                                                            Intent i = new Intent(MainActivity.this,ChatActivity.class);
+                                                            i.putExtra("nombre",user.getNombre());
+                                                            i.putExtra("sexo",user.getSexo());
+                                                            i.putExtra("youKey",finalKey);
+                                                            i.putExtra("codigo","verdad");
+                                                            i.putExtra("myKey", finalKey1);
+                                                            pd.dismiss();
+                                                            startActivity(i);
+                                                        }
+                                                    }else{
+                                                        final String finalKey2 = key1;
                                                         dbR.child("sessions").addListenerForSingleValueEvent(new ValueEventListener() {
                                                             @Override
                                                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                                                 if (snapshot.exists()){
-                                                                    String keySession = "";
+                                                                    String nombre = "";
                                                                     for (DataSnapshot ds : snapshot.getChildren()){
-                                                                        if (ds.child("users").child("user_1").getValue().toString().equals(name) && ds.child("users").child("user_2").getValue().toString().equals(user.getNombre())){
-                                                                            keySession = ds.getKey();
+                                                                        if(ds.child("users").child("user_1").getValue().toString().equals(MainActivity.name)){
+                                                                            nombre = ds.child("users").child("user_2").getValue().toString();
+                                                                        }else{
+                                                                            if (ds.child("users").child("user_2").getValue().toString().equals(MainActivity.name)){
+                                                                                nombre=ds.child("users").child("user_1").getValue().toString();
+                                                                            }
                                                                         }
                                                                     }
-                                                                    pd.dismiss();
-                                                                    Intent i = new Intent(MainActivity.this,ChatActivity.class);
-                                                                    i.putExtra("nombre",user.getNombre());
-                                                                    i.putExtra("sexo",user.getSexo());
-                                                                    i.putExtra("keySession", keySession);
-                                                                    startActivity(i);
+                                                                    final String finalNombre = nombre;
+                                                                    dbR.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                        @Override
+                                                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                                            String sexo2 = "";
+                                                                            String youKey = "";
+                                                                            for (DataSnapshot ds : snapshot.getChildren()){
+                                                                                if(ds.child("nombre").getValue().toString().equals(finalNombre)){
+                                                                                    sexo2 = ds.child("sexo").getValue().toString();
+                                                                                    youKey = ds.getKey();
+                                                                                }
+                                                                            }
+                                                                            Intent i = new Intent(MainActivity.this,ChatActivity.class);
+                                                                            i.putExtra("myKey", finalKey2);
+                                                                            i.putExtra("youKey",youKey);
+                                                                            i.putExtra("nombre", finalNombre);
+                                                                            i.putExtra("codigo","false");
+                                                                            i.putExtra("sexo",sexo2);
+                                                                            pd.dismiss();
+                                                                            startActivity(i);
+                                                                        }
+
+                                                                        @Override
+                                                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                                                        }
+                                                                    });
+
                                                                 }
                                                             }
 
                                                             @Override
                                                             public void onCancelled(@NonNull DatabaseError error) {
+
                                                             }
                                                         });
+
                                                     }
                                                 }
-                                                @Override
-                                                public void onCancelled(@NonNull DatabaseError error) {
+                                            }
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError error) {
+                                            }
+                                        });
+                                    }
+
+                                    @Override
+                                    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                                    }
+
+                                    @Override
+                                    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                                    }
+
+                                    @Override
+                                    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+                                        /*dbR.child("users").addValueEventListener(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                pd.setTitle(" sec " + l[0]);
+                                                l[0]++;
+                                                if(snapshot.exists()){
+                                                    final User user;
+                                                    ArrayList<String> keys = new ArrayList<>();
+                                                    ArrayList<User> usuariosL = new ArrayList<>();
+                                                    String key1 = "";
+                                                    for (DataSnapshot dataSnapshot:snapshot.getChildren()) {
+                                                        if (dataSnapshot.child("nombre").getValue().toString().equals(name)){
+                                                            key1 = dataSnapshot.getKey();
+                                                        }
+                                                        if(dataSnapshot.child("estado").getValue().toString().equals("true") && !dataSnapshot.child("nombre").getValue().toString().equals(name)){
+                                                            keys.add(dataSnapshot.getKey());
+                                                            usuariosL.add(dataSnapshot.getValue(User.class));
+                                                        }
+                                                    }
+                                                    if(snapshot.child(key1).child("estado").getValue().toString().equals("true")){
+                                                        Random ran = new Random();
+                                                        //Toast.makeText(MainActivity.this, String.valueOf(usuariosL.size()), Toast.LENGTH_SHORT).show();
+                                                        if (usuariosL.size()>0){
+                                                            int num;
+                                                            if (usuariosL.size()==1){
+                                                                num = 0;
+                                                            }else{
+                                                                num = ran.nextInt(usuariosL.size()-1);
+                                                            }
+                                                            user = usuariosL.get(num);
+                                                            final String finalKey =keys.get(num);
+                                                            final String finalKey1 = key1;
+                                                            //modificar estado del usuario visitante
+                                                            finish();
+                                                            Intent i = new Intent(MainActivity.this,ChatActivity.class);
+                                                            i.putExtra("nombre",user.getNombre());
+                                                            i.putExtra("sexo",user.getSexo());
+                                                            i.putExtra("youKey",finalKey);
+                                                            i.putExtra("myKey", finalKey1);
+                                                            pd.dismiss();
+                                                            startActivity(i);
+                                                        }
+                                                    }else{
+
+                                                    }
                                                 }
-                                            });
-                                        }
-                                    },5000);
-                                }else{
-                                    pd.dismiss();
-                                    AlertDialog.Builder alerta = new AlertDialog.Builder(MainActivity.this);
-                                    alerta.setTitle("MENSAJE");
-                                    alerta.setMessage("Nombre existente");
-                                    alerta.setPositiveButton("OK",null);
-                                    alerta.show();
-                                }
+                                            }
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError error) {
+                                            }
+                                        });*/
+
+                            }else{
+                                pd.dismiss();
+                                alerta("Nombre existente");
                             }
                         }
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
                         }
                     });
-
                 }else{
                     pd.dismiss();
-                    AlertDialog.Builder alerta = new AlertDialog.Builder(MainActivity.this);
-                    alerta.setTitle("MENSAJE");
-                    alerta.setMessage("Rellena todas las casillas para continuar");
-                    alerta.setPositiveButton("OK",null);
-                    alerta.show();
+                    alerta("Rellena todas las casillas para continuar");
                 }
             }
         });
