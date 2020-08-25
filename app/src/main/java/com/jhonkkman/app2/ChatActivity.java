@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +17,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.provider.ContactsContract;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -46,6 +48,7 @@ public class ChatActivity extends AppCompatActivity {
     private Button btn_salir;
     private ImageButton btn_enviar;
     private  String keySession;
+    private String codigo;
     private int valor_cerrar=0;
     private ArrayList<SessionMensajes> sm = new ArrayList<>();
 
@@ -60,7 +63,6 @@ public class ChatActivity extends AppCompatActivity {
         btn_enviar = (ImageButton) findViewById(R.id.btn_enviar);
         btn_salir = (Button) findViewById(R.id.btn_salir);
         dbR = FirebaseDatabase.getInstance().getReference();
-        Toast.makeText(this, getIntent().getStringExtra("codigo"), Toast.LENGTH_SHORT).show();
         cargar_session();
         cargar_datos();
         enviar_mensaje();
@@ -71,30 +73,29 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     public void cargar_session(){
-        if(getIntent().getStringExtra("codigo").toString().equals("verdad")){
-            dbR.child("users").child(getIntent().getStringExtra("youKey")).child("estado").setValue(false);
-            dbR.child("users").child(getIntent().getStringExtra("myKey")).child("estado").setValue(false);
-            dbR.child("sessions").push().child("users").setValue(new SessionUsers(MainActivity.name,getIntent().getStringExtra("nombre")));
-        }
-        dbR.child("sessions").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()){
-                    for (DataSnapshot ds : snapshot.getChildren()){
-                        if ((ds.child("users").child("user_1").getValue().toString().equals(MainActivity.name) && ds.child("users").child("user_2").getValue().toString().equals(getIntent().getStringExtra("nombre")))
-                        ||(ds.child("users").child("user_1").getValue().toString().equals(getIntent().getStringExtra("nombre")) && ds.child("users").child("user_2").getValue().toString().equals(MainActivity.name))){
-                            keySession = ds.getKey();
+            if(getIntent().getStringExtra("codigo").equals("verdad")){
+                dbR.child("users").child(getIntent().getStringExtra("myKey")).child("estado").setValue(false);
+                dbR.child("users").child(getIntent().getStringExtra("youKey")).child("estado").setValue(false);
+                dbR.child("sessions").push().child("users").setValue(new SessionUsers(MainActivity.name,getIntent().getStringExtra("nombre")));
+            }
+            dbR.child("sessions").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()){
+                        for (DataSnapshot ds : snapshot.getChildren()){
+                            if ((ds.child("users").child("user_1").getValue().toString().equals(MainActivity.name) && ds.child("users").child("user_2").getValue().toString().equals(getIntent().getStringExtra("nombre")))
+                                    ||(ds.child("users").child("user_1").getValue().toString().equals(getIntent().getStringExtra("nombre")) && ds.child("users").child("user_2").getValue().toString().equals(MainActivity.name))){
+                                keySession = ds.getKey();
+                            }
                         }
                     }
-                    Toast.makeText(ChatActivity.this, keySession, Toast.LENGTH_SHORT).show();
-                    Log.d("Mensajeeeeee!!!!",keySession);
                 }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-            }
-        });
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                }
+            });
+
     }
 
     public void close_for_btn(){
@@ -102,11 +103,13 @@ public class ChatActivity extends AppCompatActivity {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (valor_cerrar==0) {
-                        valor_cerrar=3;
                         if(!snapshot.child(getIntent().getStringExtra("youKey")).exists()){
+                            valor_cerrar=3;
                             final ProgressDialog pd = new ProgressDialog(ChatActivity.this);
-                            pd.setTitle(getIntent().getStringExtra("nombre") + " ha finalizado la session");
                             pd.show();
+                            pd.setCancelable(false);
+                            pd.setContentView(R.layout.progress_dialog_close);
+                            pd.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
@@ -145,8 +148,10 @@ public class ChatActivity extends AppCompatActivity {
                                 }
                                 dbR.child("sessions").child(keySession).getRef().removeValue();
                                 final ProgressDialog pd = new ProgressDialog(ChatActivity.this);
-                                pd.setTitle("Cerrando Session");
                                 pd.show();
+                                pd.setCancelable(false);
+                                pd.setContentView(R.layout.progress_dialog_close);
+                                pd.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
@@ -166,6 +171,8 @@ public class ChatActivity extends AppCompatActivity {
             });
         }
     }
+
+
 
     public void contador(){
         new CountDownTimer(60000,1000){
@@ -190,8 +197,10 @@ public class ChatActivity extends AppCompatActivity {
                                 }
                                 dbR.child("sessions").child(keySession).getRef().removeValue();
                                 final ProgressDialog pd = new ProgressDialog(ChatActivity.this);
-                                pd.setTitle("Cerrando Session");
                                 pd.show();
+                                pd.setCancelable(false);
+                                pd.setContentView(R.layout.progress_dialog_close);
+                                pd.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
@@ -262,6 +271,6 @@ public class ChatActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed(){
-        Toast.makeText(this, "Presione el boton SALIR para cerrar la sessión", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Presione el boton SALIR para cerrar la sesión", Toast.LENGTH_SHORT).show();
     }
 }

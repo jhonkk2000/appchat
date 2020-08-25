@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="25dp"
+        android:background="@drawable/pd_background">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/tv_pb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Buscando..."
+            android:textSize="20sp"
+            android:fontFamily="@font/shrimp"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="10dp"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/shrimp"
+            android:onClick="cancelar_busqueda"
+            android:background="@android:color/transparent"
+            android:textColor="@android:color/holo_red_light"
+            android:text="cancelar"/>
+
+    </LinearLayout>
+
+</RelativeLayout>
